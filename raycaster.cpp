@@ -33,7 +33,7 @@ void drawPlayer() {
 
 // passed to the glutKeyboardFunc to deal with key events, changing position of player with key presses
 void buttons(unsigned char key, int x, int y) {
-    // Changes the angle of the player and calculates pdx and pdy
+	// Changes the angle of the player and calculates pdx and pdy
     if (key=='a'){ pa-= 0.1; if (pa<0) {pa+=2*PI;} pdx=cos(pa)*5; pdy=sin(pa)*5;} 
     if (key=='d'){ pa+= 0.1; if (pa>2*PI) {pa+=2*PI;} pdx=cos(pa)*5; pdy=sin(pa)*5;}
     // Uses the calcualted values of pdx and pdy (trig ratios) to move the player.
@@ -88,8 +88,50 @@ void drawMap2D() {
 }
 
 void drawRays3D() {
-    int r,mx,my,mp,dof; float rx,ry,ra,xo,yo;
-    ra=pa; // ray angle == player angle
+	int r,mx,my,mp,dof; float rx,ry,ra,xo,yo;
+	ra=pa; // ray angle == player angle
+	for (r=0;r<1;r++) {
+		// Check horizontal lines
+		dof = 0;
+		float aTan = -1/tan(ra);
+		cout << "ra" << ra << endl;
+		cout << tan(ra) << endl;
+		cout << aTan << endl;
+		
+		
+		if (ra>PI) { // check if looking down
+			ry = (((int)py / 64) * 64);
+			//ry = (((int)py>>6)<<6)-0.0001;
+			rx = (py-ry)*aTan+px;
+			yo=-64;
+			xo=-yo*aTan;
+	
+			/*
+			cout << "aTan " << aTan << endl;
+			cout << "ry " << ry << endl;
+			cout << "rx " << rx << endl;
+			cout << "ra " << ra << endl;
+			cout << "pa " << pa << endl;
+			cout << "reset" << endl;
+			*/
+		}
+		if (ra<PI) { // check if looking down
+			ry = (((int)py / 64) * 64) + 64;
+			//ry = (((int)py>>6)<<6)-0.0001;
+			rx = (py-ry)*aTan+px;
+			yo= 64;
+			xo=-yo*aTan;
+	
+			/*
+			cout << "aTan " << aTan << endl;
+			cout << "ry " << ry << endl;
+			cout << "rx " << rx << endl;
+			cout << "ra " << ra << endl;
+			cout << "pa " << pa << endl;
+			cout << "reset" << endl;
+			*/
+		}
+	}
 }
 
 
@@ -97,6 +139,7 @@ void display() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     drawMap2D();
     drawPlayer();
+    drawRays3D();
     glutSwapBuffers();
 }
 
@@ -105,6 +148,8 @@ void init() {
     gluOrtho2D(0,1024,512,0); // window size
     px=300;
     py=300;
+    pa=PI/2;
+    pdx=cos(pa)*5; pdy=sin(pa)*5;
 }
 
 int main(int argc, char** argv) {
@@ -117,3 +162,4 @@ int main(int argc, char** argv) {
     glutKeyboardFunc(buttons); // set function which will process key events
     glutMainLoop();
 }
+
