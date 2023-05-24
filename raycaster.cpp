@@ -3,10 +3,13 @@
 //
 
 #include <GL/glut.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <math.h>
+#include <iostream>
 #define PI 3.1415926535
+
+using namespace std;
 
 float px,py,pdx,pdy,pa; // player position and angle
 
@@ -18,14 +21,24 @@ void drawPlayer() {
     glBegin(GL_POINTS); //  Treat vertex as points
     glVertex2i(px,py); // position for points
     glEnd();
+    
+    
+    // Draw line showing direction
+    glLineWidth(3); 
+    glBegin(GL_LINES);
+    glVertex2i(px,py);
+    glVertex2i(px+pdx*5, py+pdy*5); 
+    glEnd();
 }
 
 // passed to the glutKeyboardFunc to deal with key events, changing position of player with key presses
 void buttons(unsigned char key, int x, int y) {
-    if (key=='a'){ pa-= 0.1; if (pa<0) {pa+=2*PI;} pdx=cos(pa)*5; pdy=sin(pa)*5;}
-    if (key=='d'){ pa-= 0.1; if (pa<0) {pa+=2*PI;} pdx=cos(pa)*5; pdy=sin(pa)*5;}
-    if (key=='w'){}
-    if (key=='s'){}
+    // Changes the angle of the player and calculates pdx and pdy
+    if (key=='a'){ pa-= 0.1; if (pa<0) {pa+=2*PI;} pdx=cos(pa)*5; pdy=sin(pa)*5;} 
+    if (key=='d'){ pa+= 0.1; if (pa>2*PI) {pa+=2*PI;} pdx=cos(pa)*5; pdy=sin(pa)*5;}
+    // Uses the calcualted values of pdx and pdy (trig ratios) to move the player.
+    if (key=='w'){ px+=pdx; py+=pdy; }
+    if (key=='s'){ px-=pdx; py-=pdy; }
     glutPostRedisplay(); // tells the window to be redrawn after running the checks
 }
 
@@ -34,16 +47,16 @@ int mapX=8,mapY=8,mapS=64; // size of map and the size of each square in the map
 
 // Game map is represented by an array of 1 and 0s, with 1 representing a wall and 0 an empty space which will be rendered as squares.
 int map[] =
-{
-    1,1,1,1,1,1,1,1,
-    1,0,1,0,0,0,0,1,
-    1,0,1,0,0,0,0,1,
-    1,0,1,0,0,0,0,1,
-    1,0,0,0,0,0,0,1,
-    1,0,0,0,0,1,0,1,
-    1,0,0,0,0,0,0,1,
-    1,1,1,1,1,1,1,1,
-};
+        {
+                1,1,1,1,1,1,1,1,
+                1,0,1,0,0,0,0,1,
+                1,0,1,0,0,0,0,1,
+                1,0,1,0,0,0,0,1,
+                1,0,0,0,0,0,0,1,
+                1,0,0,0,0,1,0,1,
+                1,0,0,0,0,0,0,1,
+                1,1,1,1,1,1,1,1,
+        };
 
 void drawMap2D() {
     int x,y,xo,yo;
@@ -72,6 +85,11 @@ void drawMap2D() {
             glEnd();
         }
     }
+}
+
+void drawRays3D() {
+    int r,mx,my,mp,dof; float rx,ry,ra,xo,yo;
+    ra=pa; // ray angle == player angle
 }
 
 
