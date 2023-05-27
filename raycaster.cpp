@@ -14,8 +14,16 @@
 
 using namespace std;
 
-float px,py,pdx,pdy,pa; // player position and angle
+typedef struct
+{
+    int w,a,d,s;
+}ButtonKeys;
+ButtonKeys Keys;
 
+
+/////////// Player Start /////////////
+
+float px,py,pdx,pdy,pa; // player position and angle
 
 // Draws player to the screen as a point with coordinates px and py
 void drawPlayer() {
@@ -34,17 +42,26 @@ void drawPlayer() {
     glEnd();
 }
 
-// passed to the glutKeyboardFunc to deal with key events, changing position of player with key presses
-void buttons(unsigned char key, int x, int y) {
-	// Changes the angle of the player and calculates pdx and pdy
-    if (key=='a'){ pa-= 0.1; if (pa<0) {pa+=2*PI;} pdx=cos(pa)*5; pdy=sin(pa)*5;} 
-    if (key=='d'){ pa+= 0.1; if (pa>2*PI) {pa-=2*PI;} pdx=cos(pa)*5; pdy=sin(pa)*5;}
-    // Uses the calculated values of pdx and pdy (trig ratios) to move the player.
-    if (key=='w'){ px+=pdx; py+=pdy; }
-    if (key=='s'){ px-=pdx; py-=pdy; }
-    glutPostRedisplay(); // tells the window to be redrawn after running the checks
+void buttonDown(unsigned char key, int x, int y) {
+    if(key=='a') {Keys.a=1;}
+    if(key=='d') {Keys.d=1;}
+    if(key=='w') {Keys.w=1;}
+    if(key=='s') {Keys.s=1;}
+    glutPostRedisplay();
 }
 
+void buttonUp(unsigned char key, int x, int y) {
+    if(key=='a') {Keys.a=0;}
+    if(key=='d') {Keys.d=0;}
+    if(key=='w') {Keys.w=0;}
+    if(key=='s') {Keys.s=0;}
+    glutPostRedisplay();
+}
+
+
+/////////// Player End /////////////
+
+/////////// Map Start /////////////
 
 int mapX=8,mapY=8,mapS=64; // size of map and the size of each square in the map, so every 1 or 0 will be a square of length 64.
 // Game map is represented by an array of 1 and 0s, with 1 representing a wall and 0 an empty space which will be rendered as squares.
@@ -91,6 +108,11 @@ void drawMap2D() {
     }
 }
 
+/////////// Map End /////////////
+
+
+/////////// Rays Start /////////////
+
 // Calculate distance from player until wall that ray a hits, found using pythagorean theorem
 float dist(float playerx, float playery, float wallx, float wally) {
     return (sqrt((wallx - playerx) * (wallx - playerx) + (wally - playery) * (wally - playery)));
@@ -130,8 +152,6 @@ void drawRays3D() {
 			rx = (py-ry)*aTan+px;
 			yo=-64;
 			xo=-yo*aTan;
-
-            cout << "up" << endl;
 		}
 
 		if (ra<PI) { // check if looking down
@@ -139,15 +159,12 @@ void drawRays3D() {
 			rx = (py-ry)*aTan+px;
 			yo= 64;
 			xo=-yo*aTan;
-
-            cout << " down" <<endl;
 		}
 
         // straight left or right
         if (ra==0 || ra==PI) {
             rx=px; ry=py;
             dof=8;
-            cout << "straight" << endl;
         }
 
         while (dof<8) {
@@ -179,8 +196,6 @@ void drawRays3D() {
             ry = (px-rx)*nTan+py;
             xo=-64;
             yo=-xo*nTan;
-
-            cout << "up" << endl;
         }
 
         if (ra < P2 || ra > P3) { // check if looking right
@@ -188,15 +203,12 @@ void drawRays3D() {
             ry = (px-rx)*nTan+py;
             xo= 64;
             yo=-xo*nTan;
-
-            cout << " down" <<endl;
         }
 
         // straight up or down
         if (ra==0 || ra==PI) {
             rx=px; ry=py;
             dof=8;
-            cout << "straight" << endl;
         }
 
         while (dof<8) {
@@ -254,7 +266,7 @@ void drawRays3D() {
 
 
 
-        ra += DR; // increase ra by one degree for next iteration
+        ra += DR - 0.0001; // increase ra by one degree for next iteration
         //checking if ra after changing value have to be flipped back to 2pi or 0 to continue on 0 < ra < 2pi
         if (ra<0) {ra += 2*PI;}
         if (ra>2*PI) {ra-=2*PI;}
@@ -262,8 +274,30 @@ void drawRays3D() {
 	}
 }
 
+/////////// Rays End /////////////
+
+
+void collision() {
+    
+}
+
+float frame1,frame2,fps;
 
 void display() {
+    //fps
+    frame2=glutGet(GLUT_ELAPSED_TIME);
+    fps =(frame2-frame1);
+    frame1=glutGet(GLUT_ELAPSED_TIME);
+
+
+    // Changes the angle of the player and calculates pdx and pdy
+    if (Keys.a==1){ pa-= 0.005*fps; if (pa<0) {pa+=2*PI;} pdx=cos(pa)*5; pdy=sin(pa)*5;}
+    if (Keys.d==1){ pa+= 0.005*fps; if (pa>2*PI) {pa-=2*PI;} pdx=cos(pa)*5; pdy=sin(pa)*5;}
+    // Uses the calculated values of pdx and pdy (trig ratios) to move the player.
+    if (Keys.w==1){ px+=pdx*0.025*fps; py+=pdy*0.025*fps; }
+    if (Keys.s==1){ px-=pdx*0.025*fps; py-=pdy*0.025*fps; }
+    glutPostRedisplay();
+
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     drawMap2D();
     drawPlayer();
@@ -293,7 +327,8 @@ int main(int argc, char** argv) {
     init();
     glutDisplayFunc(display);
     glutReshapeFunc(resize);
-    glutKeyboardFunc(buttons); // set function which will process key events
+    glutKeyboardFunc(buttonDown);
+    glutKeyboardUpFunc(buttonUp);
     glutMainLoop();
 }
 
